@@ -19,6 +19,7 @@ jobs:
           docker save my-static-site:latest -o my-static-site.tar
           ls -lh my-static-site.tar
           test -s my-static-site.tar
+          chmod 777  my-static-site.tar
 
       - name: Copy image to Azure VM
         uses: appleboy/scp-action@v0.1.7
