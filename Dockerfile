@@ -1,8 +1,11 @@
-# Use an official Nginx image
+# Use official Nginx image
 FROM nginx:latest
 
-# Copy website files to Nginx html directory
-COPY . /usr/share/nginx/html
+# Remove default nginx index page
+RUN rm -rf /usr/share/nginx/html/*
+
+# Copy only website files
+COPY index.html style.css script.js /usr/share/nginx/html/
 
 # Expose port 80
 EXPOSE 80
