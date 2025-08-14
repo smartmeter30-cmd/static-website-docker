@@ -8,4 +8,4 @@ RUN rm -rf /usr/share/nginx/html/*
 COPY index.html style.css script.js /usr/share/nginx/html/
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 8080
