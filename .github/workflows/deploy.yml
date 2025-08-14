@@ -39,4 +39,4 @@ jobs:
             docker load -i my-static-site.tar
             docker stop static-site || true
             docker rm static-site || true
-            docker run -d -p 80:80 --name static-site my-static-site:latest
+            docker run -d -p 80:80 --name static-site my-static-site:latest 
