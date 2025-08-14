@@ -14,14 +14,11 @@ jobs:
       - name: Build Docker image
         run: docker build -t my-static-site:latest .
 
-      - name: Verify Docker image
-        run: docker images
-
-      - name: Save Docker image as tar
+      - name: Save Docker image as tar in workspace
         run: |
-          docker save my-static-site:latest -o /tmp/my-static-site.tar
-          ls -lh /tmp/my-static-site.tar
-          test -s /tmp/my-static-site.tar  # Fail if file is empty
+          docker save my-static-site:latest -o my-static-site.tar
+          ls -lh my-static-site.tar
+          test -s my-static-site.tar
 
       - name: Copy image to Azure VM
         uses: appleboy/scp-action@v0.1.7
@@ -29,7 +26,7 @@ jobs:
           host: ${{ secrets.AZURE_VM_IP }}
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
-          source: "/tmp/my-static-site.tar"
+          source: "my-static-site.tar"
           target: "~/"
 
       - name: Deploy on Azure VM
