@@ -15,7 +15,7 @@ jobs:
         run: docker build -t my-static-site .
 
       - name: Save Docker image as tar
-        run: docker save my-static-site -o ${{ github.workspace }}/my-static-site.tar
+        run: docker save my-static-site -o /tmp/my-static-site.tar
 
       - name: Copy image to Azure VM
         uses: appleboy/scp-action@v0.1.7
@@ -23,7 +23,7 @@ jobs:
           host: ${{ secrets.AZURE_VM_IP }}
           username: ${{ secrets.AZURE_VM_USER }}
           key: ${{ secrets.AZURE_VM_SSH_KEY }}
-          source: "${{ github.workspace }}/my-static-site.tar"
+          source: "/tmp/my-static-site.tar"
           target: "/home/${{ secrets.AZURE_VM_USER }}"
 
       - name: Deploy on Azure VM
