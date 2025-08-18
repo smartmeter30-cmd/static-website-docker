@@ -1,43 +1,58 @@
+# Name of the workflow — this shows up in GitHub Actions UI
 name: Build and Deploy to Azure VM
 
+# Trigger this workflow on push events to the "main" branch
 on:
   push:
     branches: [ "main" ]
 
 jobs:
   build:
+    # Use the latest Ubuntu runner GitHub provides (runs in the cloud)
     runs-on: ubuntu-latest
+
     steps:
+      # Step 1: Checkout the code from your GitHub repository
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v3  # Official GitHub action to pull the repo content
 
+      # Step 2: Build a Docker image from the Dockerfile in the root directory
       - name: Build Docker image
-        run: docker build -t my-static-site:latest .
+        run: docker build -t my-static-site:latest .  # "." means current directory
 
+      # Step 3: Save the built Docker image as a .tar archive file
       - name: Save Docker image as tar in workspace
         run: |
-          docker save my-static-site:latest -o my-static-site.tar
-          ls -lh my-static-site.tar
-          test -s my-static-site.tar
-          chmod 777  my-static-site.tar
+          docker save my-static-site:latest -o my-static-site.tar  # Export image
+          ls -lh my-static-site.tar        # List file size to confirm it's there
+          test -s my-static-site.tar       # Check file is not empty
+          chmod 777 my-static-site.tar     # Set full permissions so it can be transferred
 
+      # Step 4: Copy the .tar image file to the Azure Virtual Machine using SCP
       - name: Copy image to Azure VM
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.AZURE_VM_IP }}
-          username: ${{ secrets.AZURE_VM_USER }}
-          key: ${{ secrets.AZURE_VM_SSH_KEY }}
-          source: "my-static-site.tar"
-          target: "~/"
+          host: ${{ secrets.AZURE_VM_IP }}        # IP address of the Azure VM
+          username: ${{ secrets.AZURE_VM_USER }}  # SSH username
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}    # SSH private key (stored in GitHub Secrets)
+          source: "my-static-site.tar"            # File to copy
+          target: "~/"                            # Target directory (home) on the VM
 
+      # Step 5: SSH into the Azure VM and deploy the Docker container
       - name: Deploy on Azure VM
         uses: appleboy/ssh-action@master
         with:
-          host: ${{ secrets.AZURE_VM_IP }}
-          username: ${{ secrets.AZURE_VM_USER }}
-          key: ${{ secrets.AZURE_VM_SSH_KEY }}
+          host: ${{ secrets.AZURE_VM_IP }}        # Connect to the VM using IP
+          username: ${{ secrets.AZURE_VM_USER }}  # SSH username
+          key: ${{ secrets.AZURE_VM_SSH_KEY }}    # SSH private key
           script: |
-            docker load -i my-static-site.tar
-            docker stop static-site || true
-            docker rm static-site || true
+            docker load -i my-static-site.tar        # Load the Docker image from .tar
+            docker stop static-site || true           # Stop existing container (if any)
+            docker rm static-site || true             # Remove existing container (if any)
+            docker run -d -p 8080:80 --name static-site my-static-site:latest  
+            # Run the container:
+            # -d = detached mode
+            # -p 8080:80 = map host port 8080 to container port 80
+            # --name = name the container "static-site"
+
             docker run -d -p 8080:80 --name static-site my-static-site:latest 
