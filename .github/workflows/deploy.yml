@@ -55,4 +55,4 @@ jobs:
             # -p 8080:80 = map host port 8080 to container port 80
             # --name = name the container "static-site"
 
-            docker run -d -p 8080:80 --name static-site my-static-site:latest 
+    
